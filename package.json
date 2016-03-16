@@ -129,7 +129,7 @@
     "watch": "parallelshell 'npm run doc:watch' 'npm run prepublish:watch' 'npm run serve'"
   },
   "dependencies": {
-    "react": "^0.14.2",
+    "react": "^0.14.7",
     "react-dom": "^0.14.2"
   },
   "devDependencies": {
