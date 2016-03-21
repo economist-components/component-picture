@@ -1,9 +1,10 @@
-/* eslint-disable */
-const globalObject = typeof window !== 'undefined' ? window : global;
-/* eslint-enable */
+/* global window */
+const globalObject = (typeof window === 'undefined') ? global : window;
+const setTimeoutTimeout = 20;
+const debounceTimeout = 100;
 const requestFrame = (
   globalObject.requestAnimationFrame ||
-  ((callback) => setTimeout(callback, 1000 / 60))
+  ((callbackFunction) => setTimeout(callbackFunction, setTimeoutTimeout))
 );
 const cancelFrame = (
   globalObject.cancelAnimationFrame ||
@@ -32,7 +33,7 @@ function windowHasResized() {
         }
       });
     }
-  }, 100);
+  }, debounceTimeout);
 }
 
 function addWindowResizeListener() {
@@ -40,38 +41,40 @@ function addWindowResizeListener() {
   globalObject.addEventListener('resize', windowHasResized);
 }
 
-export function addElementResizeListener(element, callback) {
+export function addElementResizeListener(element, callbackFunction) {
   if (!element || (element instanceof globalObject.HTMLElement) === false) {
-    throw new Error(`element must be HTMLElement, given ${element}`);
+    throw new Error(`element must be HTMLElement, given ${ element }`);
   }
-  if (typeof callback !== 'function') {
-    throw new Error(`callback must be function, given ${callback}`);
+  if (typeof callbackFunction !== 'function') {
+    throw new Error(`callback must be function, given ${ callbackFunction }`);
   }
-  let elementReference = elementsWithResizeListeners.find((item) => item.element === element);
+  let elementReference = elementsWithResizeListeners.find((currentItem) => currentItem.element === element);
   if (!elementReference) {
     elementReference = { element, listeners: [], frame: null, oldWidth: null, oldHeight: null };
     elementsWithResizeListeners.push(elementReference);
   }
-  if (elementReference.listeners.indexOf(callback) !== -1) {
+  const notFound = -1;
+  if (elementReference.listeners.indexOf(callbackFunction) !== notFound) {
     return false;
   }
-  elementReference.listeners.push(callback);
+  elementReference.listeners.push(callbackFunction);
   addWindowResizeListener();
   return true;
 }
 
-export function removeElementResizeListener(element, callback) {
-  const elementReference = elementsWithResizeListeners.find((item) => item.element === element);
+export function removeElementResizeListener(element, callbackFunction) {
+  const elementReference = elementsWithResizeListeners.find((currentItem) => currentItem.element === element);
   if (!elementReference) {
     return false;
   }
-  const listenerIndex = elementReference.listeners.indexOf(callback);
-  if (listenerIndex === -1) {
+  const notFound = -1;
+  const listenerIndex = elementReference.listeners.indexOf(callbackFunction);
+  if (listenerIndex === notFound) {
     return false;
   }
-  elementReference.listeners = elementReference.listeners.filter((item) => item !== callback);
+  elementReference.listeners = elementReference.listeners.filter((currentItem) => currentItem !== callbackFunction);
   if (elementReference.listeners.length === 0) {
-    elementsWithResizeListeners = elementsWithResizeListeners.filter((item) => item !== elementReference);
+    elementsWithResizeListeners = elementsWithResizeListeners.filter((currentItem) => currentItem !== elementReference);
   }
   return true;
 }

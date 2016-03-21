@@ -1,13 +1,14 @@
 /* global window */
 export function getDppx(global) {
-  const globalObject = global || (typeof window !== 'undefined' ? window : {});
+  const globalObject = global || (typeof window === 'undefined' ? {} : window);
   const dppxInDpi = 96;
   if ('devicePixelRatio' in globalObject) {
     return Number(globalObject.devicePixelRatio);
   } else if ('screen' in globalObject && 'deviceXDPI' in globalObject.screen) {
-    return Math.round((
-      Math.sqrt(globalObject.screen.deviceXDPI * globalObject.screen.deviceYDPI) / dppxInDpi
-    ) * 100) / 100;
+    const divisor = 100;
+    return Math.round(
+      (Math.sqrt(globalObject.screen.deviceXDPI * globalObject.screen.deviceYDPI) / dppxInDpi
+    ) * divisor) / divisor;
   }
   return 1;
 }

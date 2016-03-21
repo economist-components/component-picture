@@ -1,8 +1,11 @@
+/* global window */
+import 'babel-polyfill';
+import { getClosestDppx, getDppx } from '../src/get-dppx';
 import chai from 'chai';
 chai.should();
-import { getDppx, getClosestDppx } from '../get-dppx';
+
 describe('getDppx', () => {
-  const globalObject = typeof window !== 'undefined' ? window : global;
+  const globalObject = (typeof window === 'undefined') ? global : window;
   it('returns devicePixelRatio if set', () => {
     getDppx({ devicePixelRatio: 17 }).should.equal(17);
     getDppx({ devicePixelRatio: 4 }).should.equal(4);
@@ -38,12 +41,9 @@ describe('getDppx', () => {
     });
 
     it('defaults second argument to be getDppx', () => {
-      /* global window */
       globalObject.window = globalObject.window || {};
       globalObject.window.devicePixelRatio = 3;
       getClosestDppx([ 1, 2, 3 ]).should.equal(3);
     });
-
   });
-
 });
