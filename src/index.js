@@ -20,6 +20,7 @@ export default class Picture extends React.Component {
   constructor(props, ...rest) {
     super(props, ...rest);
     this.changeImageByWidth = this.changeImageByWidth.bind(this);
+    this.hasChanged = false;
     const { sources } = props;
     let isSvgSource = false;
     sources.forEach((source) => {
@@ -62,6 +63,12 @@ export default class Picture extends React.Component {
       if (Math.abs(rightSource.dppx - dppx) < Math.abs(leftSource.dppx - dppx)) {
         return rightSource;
       }
+      if (rightSource.width < width && leftSource.width >= width) {
+        return leftSource;
+      }
+      if (leftSource.width < width && rightSource.width >= width) {
+        return rightSource;
+      }
       const rightSourceWidthDelta = Math.abs(rightSource.width - width);
       const leftSourceWidthDelta = Math.abs(leftSource.width - width);
       if (rightSourceWidthDelta === leftSourceWidthDelta) {
@@ -70,13 +77,13 @@ export default class Picture extends React.Component {
         return (rightSourceHeightDelta < leftSourceHeightDelta) ? rightSource : leftSource;
       }
       return (rightSourceWidthDelta < leftSourceWidthDelta) ? rightSource : leftSource;
-    }, this.props.sources[0]);
+    });
     this.setState(bestFitImage);
   }
 
   render() {
     const { url, isSvgSource } = this.state || {};
-    const { className, alt, itemProp, ...remainingProps } = this.props;
+    const { className, alt, itemProp } = this.props;
     let pictureElement = null;
     if (isSvgSource) {
       pictureElement = (
@@ -88,17 +95,23 @@ export default class Picture extends React.Component {
         />
       );
     } else {
+      let pictureClassnamesModifier = '';
+      if (!this.hasChanged) {
+        this.hasChanged = true;
+        pictureClassnamesModifier = ' picture__image--changed';
+      }
+      const pictureClassnames = `picture__image${ pictureClassnamesModifier }`;
       pictureElement = (
         <img
           alt={alt}
           src={url}
           itemProp={itemProp}
-          className="picture__image"
+          className={pictureClassnames}
         />
       );
     }
     return (
-      <div {...remainingProps} className={[ 'picture' ].concat(className).join(' ').trim()}>
+      <div className={[ 'picture' ].concat(className).join(' ').trim()}>
         {pictureElement}
       </div>
     );

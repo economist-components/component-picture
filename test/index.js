@@ -37,7 +37,7 @@ describe('Picture', () => {
           alt="foo"
           src="https://placehold.it/400x500"
           itemProp="image"
-          className="picture__image"
+          className="picture__image picture__image--changed"
         />
       );
     });
@@ -61,7 +61,7 @@ describe('Picture', () => {
           alt="foo"
           src="https://placehold.it/300x400"
           itemProp="image"
-          className="picture__image"
+          className="picture__image picture__image--changed"
         />
       );
     });
@@ -140,14 +140,16 @@ describe('Picture', () => {
       picture.setState = (state) => (picture.state = { ...picture.state, ...state });
     });
 
-    it('sets state.url to the closest image to the given (width, height)', () => {
+    it('sets state.url to the best image to the given (width, height)', () => {
       picture.state.dppx = 1;
       picture.changeImageByWidth(2000, 2000);
-      picture.state.url.should.equal('https://placehold.it/896x504', 'closest to 2000x2000');
+      picture.state.url.should.equal('https://placehold.it/896x504', 'best is 896x504');
       picture.changeImageByWidth(890, 500);
-      picture.state.url.should.equal('https://placehold.it/896x504', 'closest to 890x500');
+      picture.state.url.should.equal('https://placehold.it/896x504', 'best is 896x504');
       picture.changeImageByWidth(770, 450);
-      picture.state.url.should.equal('https://placehold.it/768x432', 'closest to 770x450');
+      picture.state.url.should.equal('https://placehold.it/896x504', 'best is 896x504');
+      picture.changeImageByWidth(750, 450);
+      picture.state.url.should.equal('https://placehold.it/768x432', 'best is 768x432');
     });
 
     it('only picks images with appropriate dppx', () => {
