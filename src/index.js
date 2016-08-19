@@ -83,30 +83,36 @@ export default class Picture extends React.Component {
 
   render() {
     const { url, isSvgSource } = this.state || {};
-    const { className, alt, itemProp } = this.props;
+    const { className, classNameImage, classNameObject, alt, itemProp } = this.props;
     let pictureElement = null;
     if (isSvgSource) {
+      const objectClassnames = [ 'picture__object' ];
+      if (classNameObject) {
+        objectClassnames.push(classNameObject);
+      }
       pictureElement = (
         <object
           type="image/svg+xml"
           data={url}
           itemProp={itemProp}
-          className="picture__object"
+          className={objectClassnames.join(' ').trim()}
         />
       );
     } else {
-      let pictureClassnamesModifier = '';
+      const imageClassnames = [ 'picture__image' ];
       if (!this.hasChanged) {
         this.hasChanged = true;
-        pictureClassnamesModifier = ' picture__image--changed';
+        imageClassnames.push('picture__image--changed');
       }
-      const pictureClassnames = `picture__image${ pictureClassnamesModifier }`;
+      if (classNameImage) {
+        imageClassnames.push(classNameImage);
+      }
       pictureElement = (
         <img
           alt={alt}
           src={url}
           itemProp={itemProp}
-          className={pictureClassnames}
+          className={imageClassnames.join(' ').trim()}
         />
       );
     }
@@ -131,6 +137,8 @@ if (process.env.NODE_ENV !== 'production') {
       React.PropTypes.string,
       React.PropTypes.array,
     ]),
+    classNameObject: React.PropTypes.string,
+    classNameImage: React.PropTypes.string,
     alt: React.PropTypes.string.isRequired,
     sources: React.PropTypes.arrayOf(React.PropTypes.shape({
       url: React.PropTypes.string.isRequired,
