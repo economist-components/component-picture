@@ -103,7 +103,7 @@
     ]
   },
   "dependencies": {
-    "react": "^0.14.8||^15.0.0",
+    "react": "^15.1.0",
     "react-dom": "^0.14.8||^15.0.0"
   },
   "devDependencies": {
