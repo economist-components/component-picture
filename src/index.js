@@ -2,6 +2,7 @@ import { addElementResizeListener, removeElementResizeListener } from './element
 import React from 'react';
 import { findDOMNode as findDomNode } from 'react-dom';
 import { getClosestDppx } from './get-dppx';
+import PropTypes from 'prop-types';
 
 export function getSmallPortraitSource(sources, dppx) {
   return sources.reduce((previousSource, currentSource) => {
@@ -22,21 +23,18 @@ export default class Picture extends React.Component {
     this.changeImageByWidth = this.changeImageByWidth.bind(this);
     this.hasChanged = false;
     const { sources } = props;
-    let isSvgSource = false;
-    sources.forEach((source) => {
-      if (source.mime && source.mime === 'image/svg+xml') {
-        isSvgSource = true;
-        sources[0] = source;
-        return;
-      }
-    });
+    const svgSource = sources
+      .filter((source) => source.mime && source.mime === 'image/svg+xml')
+      .pop();
+    const isSvgSource = Boolean(svgSource);
     let smallPortraitSource = {};
-    if (isSvgSource === false) {
+    if (isSvgSource) {
+      smallPortraitSource = svgSource;
+    } else {
       const dppx = getClosestDppx(sources);
       smallPortraitSource = getSmallPortraitSource(sources, dppx);
-    } else {
-      smallPortraitSource = sources[0];
     }
+
     this.state = {
       ...smallPortraitSource,
       isSvgSource,
@@ -132,20 +130,20 @@ Picture.defaultProps = {
 
 if (process.env.NODE_ENV !== 'production') {
   Picture.propTypes = {
-    itemProp: React.PropTypes.string,
-    className: React.PropTypes.oneOfType([
-      React.PropTypes.string,
-      React.PropTypes.array,
+    itemProp: PropTypes.string,
+    className: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.array,
     ]),
-    classNameObject: React.PropTypes.string,
-    classNameImage: React.PropTypes.string,
-    alt: React.PropTypes.string.isRequired,
-    sources: React.PropTypes.arrayOf(React.PropTypes.shape({
-      url: React.PropTypes.string.isRequired,
-      width: React.PropTypes.number.isRequired,
-      height: React.PropTypes.number,
-      dppx: React.PropTypes.number,
-      mime: React.PropTypes.string,
+    classNameObject: PropTypes.string,
+    classNameImage: PropTypes.string,
+    alt: PropTypes.string.isRequired,
+    sources: PropTypes.arrayOf(PropTypes.shape({
+      url: PropTypes.string.isRequired,
+      width: PropTypes.number.isRequired,
+      height: PropTypes.number,
+      dppx: PropTypes.number,
+      mime: PropTypes.string,
     })).isRequired,
   };
 }

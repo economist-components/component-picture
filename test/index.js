@@ -4,10 +4,13 @@ import Picture from '../src';
 import * as dppxUtils from '../src/get-dppx';
 import * as reactDom from 'react-dom';
 import * as resizeUtils from '../src/element-resize-listener';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 import { mount, shallow } from 'enzyme';
 import chai from 'chai';
 import chaiEnzyme from 'chai-enzyme';
 import chaiSpies from 'chai-spies';
+Enzyme.configure({ adapter: new Adapter() });
 chai.use(chaiEnzyme()).use(chaiSpies).should();
 
 describe('Picture', () => {
@@ -18,6 +21,16 @@ describe('Picture', () => {
   describe('initial state', () => {
     let picture = null;
     let rendered = null;
+    // chai-spies has no notion of restoring original methods.
+    // Even though this functionality exists on chai-spies' master,
+    // it hasn't been released yet.
+    const orig = {
+      getClosestDppx: dppxUtils.getClosestDppx,
+    };
+    afterEach(() => {
+      dppxUtils.getClosestDppx = orig.getClosestDppx;
+    });
+
     it('sets state.{dppx,url,width,height} to first image that matches closest dppx (1)', () => {
       dppxUtils.getClosestDppx = chai.spy(() => 1);
       rendered = shallow(
@@ -29,8 +42,10 @@ describe('Picture', () => {
             { url: 'https://placehold.it/300x400', width: 300, height: 400, dppx: 2 },
             { url: 'https://placehold.it/896x504', width: 896, height: 504, dppx: 1 },
           ]}
-        />
+        />,
+        { disableLifecycleMethods: true }
       );
+
       picture = rendered.find('.picture');
       picture.should.contain(
         <img
@@ -53,7 +68,8 @@ describe('Picture', () => {
             { url: 'https://placehold.it/300x400', width: 300, height: 400, dppx: 2 },
             { url: 'https://placehold.it/896x504', width: 896, height: 504, dppx: 1 },
           ]}
-        />
+        />,
+        { disableLifecycleMethods: true }
       );
       picture = rendered.find('.picture');
       picture.should.contain(
@@ -67,9 +83,14 @@ describe('Picture', () => {
     });
   });
 
-  describe('componentDidMount', () => {
+  describe('mounting and unmounting', () => {
     let reactDomRef = null;
     let picture = null;
+    const orig = {
+      findDOMNode: reactDom.findDOMNode,
+      removeElementResizeListener: resizeUtils.removeElementResizeListener,
+      addElementResizeListener: resizeUtils.addElementResizeListener,
+    };
     beforeEach(() => {
       picture = new Picture({
         sources: [
@@ -84,42 +105,34 @@ describe('Picture', () => {
       resizeUtils.removeElementResizeListener = chai.spy();
     });
 
-    it('calls addElementResizeListener(findDOMNode(this), this.changeImageByWidth)', () => {
-      picture.componentDidMount();
-      reactDom.findDOMNode
-        .should.have.been.called(1)
-        .with.exactly(picture);
-      resizeUtils.addElementResizeListener
-        .should.have.been.called(1)
-        .with.exactly(reactDomRef, picture.changeImageByWidth);
+    afterEach(() => {
+      reactDom.default.findDOMNode = reactDom.findDOMNode = orig.findDOMNode;
+      resizeUtils.removeElementResizeListener = orig.removeElementResizeListener;
+      resizeUtils.addElementResizeListener = orig.addElementResizeListener;
     });
-  });
 
-  describe('componentWillUnmount', () => {
-    let reactDomRef = null;
-    let picture = null;
-    beforeEach(() => {
-      picture = new Picture({
-        sources: [
-          { url: 'https://placehold.it/1792x1008', width: 896, height: 504, dppx: 2 },
-        ],
-        alt: 'foo',
+    describe('componentDidMount', () => {
+      it('calls addElementResizeListener(findDOMNode(this), this.changeImageByWidth)', () => {
+        picture.componentDidMount();
+        reactDom.findDOMNode
+          .should.have.been.called(1)
+          .with.exactly(picture);
+        resizeUtils.addElementResizeListener
+          .should.have.been.called(1)
+          .with.exactly(reactDomRef, picture.changeImageByWidth);
       });
-      picture.refs = { picture: {} };
-      reactDomRef = {};
-      reactDom.findDOMNode = reactDom.default.findDOMNode = chai.spy(() => reactDomRef);
-      resizeUtils.addElementResizeListener = chai.spy();
-      resizeUtils.removeElementResizeListener = chai.spy();
     });
 
-    it('calls removeElementResizeListener(findDOMNode(this), this.changeImageByWidth)', () => {
-      picture.componentWillUnmount();
-      reactDom.findDOMNode
-        .should.have.been.called(1)
-        .with.exactly(picture);
-      resizeUtils.removeElementResizeListener
-        .should.have.been.called(1)
-        .with.exactly(reactDomRef, picture.changeImageByWidth);
+    describe('componentWillUnmount', () => {
+      it('calls removeElementResizeListener(findDOMNode(this), this.changeImageByWidth)', () => {
+        picture.componentWillUnmount();
+        reactDom.findDOMNode
+          .should.have.been.called(1)
+          .with.exactly(picture);
+        resizeUtils.removeElementResizeListener
+          .should.have.been.called(1)
+          .with.exactly(reactDomRef, picture.changeImageByWidth);
+      });
     });
   });
 
