@@ -19,6 +19,11 @@ describe('element-resize-listener', () => {
   let element = null;
   let callback = null;
   let resizeListener = null;
+  const orig = {
+    HTMLElement: globalObject.HTMLElement,
+    addEventListener: globalObject.addEventListener,
+    removeEventListener: globalObject.removeEventListener,
+  };
   beforeEach(() => {
     /* eslint-disable id-match */
     globalObject.HTMLElement = chai.spy();
@@ -29,6 +34,10 @@ describe('element-resize-listener', () => {
     globalObject.removeEventListener = chai.spy();
     element = new globalObject.HTMLElement();
     callback = chai.spy();
+  });
+
+  afterEach(() => {
+    Object.assign(globalObject, orig);
   });
 
   describe('addElementResizeListener', () => {
